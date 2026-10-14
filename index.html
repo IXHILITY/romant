@@ -1,0 +1,2709 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Клуб Романтики: Истории Стеши</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-deep: #12091d;
+      --bg-card: rgba(32, 16, 48, 0.88);
+      --bg-glass: rgba(24, 11, 38, 0.84);
+      --gold: #f5d076;
+      --gold-bright: #ffe89e;
+      --gold-dark: #b38328;
+      --rose: #ff5e97;
+      --rose-soft: #ff9ec4;
+      --violet: #9d5cff;
+      --text-main: #fff8fc;
+      --text-muted: #d4bddf;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 15%, #2e144d 0%, #140824 60%, #090312 100%);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    #app {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.85);
+      background: #12081f;
+    }
+
+    #particles-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Top Currency & Status Bar */
+    .top-bar {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: calc(10px + var(--safe-top)) 14px 10px;
+      background: linear-gradient(180deg, rgba(12, 5, 22, 0.95) 0%, rgba(18, 8, 31, 0.78) 80%, transparent 100%);
+    }
+
+    .currency-group {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .currency-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(28, 12, 46, 0.9);
+      border: 1px solid rgba(245, 208, 118, 0.48);
+      border-radius: 999px;
+      padding: 4px 9px 4px 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .currency-pill:active {
+      transform: scale(0.95);
+    }
+
+    .currency-pill .plus-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #1a0b2e;
+      font-size: 13px;
+      font-weight: 900;
+      margin-left: 2px;
+    }
+
+    .fever-badge {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ff4b91, #b34bff);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      box-shadow: 0 0 12px rgba(255, 94, 151, 0.6);
+      animation: pulseGlow 2s infinite;
+      cursor: pointer;
+    }
+
+    .fever-badge.active {
+      display: inline-flex;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 1px solid rgba(245, 208, 118, 0.42);
+      background: rgba(28, 12, 46, 0.88);
+      color: var(--gold-bright);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* Screens */
+    .screen {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-bottom: calc(76px + var(--safe-bottom));
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    /* Banner Notification (Romance Club style top banner) */
+    #rc-toast-container {
+      position: absolute;
+      top: calc(56px + var(--safe-top));
+      left: 14px;
+      right: 14px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .rc-toast {
+      background: linear-gradient(90deg, rgba(22, 9, 38, 0.96) 0%, rgba(52, 20, 84, 0.96) 50%, rgba(22, 9, 38, 0.96) 100%);
+      border-top: 1.5px solid var(--gold);
+      border-bottom: 1.5px solid var(--gold);
+      padding: 10px 16px;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 15px rgba(245, 208, 118, 0.28);
+      animation: toastSlideIn 0.35s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    @keyframes toastSlideIn {
+      from { opacity: 0; transform: translateY(-16px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 10px rgba(255, 94, 151, 0.5); }
+      50% { box-shadow: 0 0 18px rgba(245, 208, 118, 0.85); }
+    }
+
+    /* Lobby Hero Section */
+    .lobby-header {
+      padding: 6px 18px 12px;
+      text-align: center;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      color: var(--gold);
+      margin-bottom: 3px;
+      font-weight: 700;
+    }
+
+    .brand-title {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 25px;
+      font-weight: 700;
+      margin: 0;
+      background: linear-gradient(180deg, #ffffff 0%, #ffe6a3 55%, #d99f36 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 2px 14px rgba(245, 208, 118, 0.25);
+    }
+
+    /* Stesha Profile Banner in Lobby */
+    .heroine-showcase {
+      margin: 4px 16px 14px;
+      padding: 12px 14px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(58, 22, 94, 0.84) 0%, rgba(28, 11, 49, 0.94) 100%);
+      border: 1px solid rgba(245, 208, 118, 0.45);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+      cursor: pointer;
+    }
+
+    .heroine-mini-avatar {
+      width: 68px;
+      height: 82px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 50% 30%, #5c2888, #1f0b36);
+      border: 1.5px solid var(--gold);
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .heroine-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .heroine-name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .heroine-name {
+      font-family: Georgia, serif;
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .wardrobe-link-chip {
+      font-size: 11px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: rgba(245, 208, 118, 0.18);
+      border: 1px solid rgba(245, 208, 118, 0.5);
+      color: var(--gold-bright);
+      font-weight: 600;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 7px;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      font-size: 11.5px;
+      padding: 3px 8px;
+      border-radius: 8px;
+      background: rgba(15, 6, 28, 0.68);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat-chip b {
+      color: #fff;
+    }
+
+    /* Story Cards */
+    .section-label {
+      padding: 0 18px 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stories-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 0 16px 16px;
+    }
+
+    .story-card {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1.5px solid rgba(245, 208, 118, 0.42);
+      background: var(--bg-card);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
+
+    .story-card:active {
+      transform: scale(0.985);
+    }
+
+    .story-card-art {
+      height: 155px;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .story-card-art svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .story-genre-tags {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      display: flex;
+      gap: 6px;
+      z-index: 2;
+    }
+
+    .genre-badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(15, 6, 28, 0.8);
+      border: 1px solid rgba(245, 208, 118, 0.45);
+      color: var(--gold-bright);
+      backdrop-filter: blur(6px);
+    }
+
+    .story-progress-badge {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(255, 94, 151, 0.88);
+      color: #fff;
+      z-index: 2;
+    }
+
+    .story-card-body {
+      padding: 13px 15px 15px;
+      background: linear-gradient(180deg, rgba(26, 11, 44, 0.95), rgba(18, 7, 32, 0.98));
+    }
+
+    .story-title {
+      font-family: Georgia, serif;
+      font-size: 19px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      margin: 0 0 5px;
+    }
+
+    .story-desc {
+      font-size: 13px;
+      line-height: 1.45;
+      color: var(--text-muted);
+      margin: 0 0 12px;
+    }
+
+    .story-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .li-avatars {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--rose-soft);
+      font-weight: 600;
+    }
+
+    .play-btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--gold-bright);
+      background: linear-gradient(135deg, #f7d782 0%, #c98e2b 100%);
+      color: #1c0a2e;
+      font-weight: 800;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(245, 208, 118, 0.35);
+      cursor: pointer;
+    }
+
+    /* Story Reader / Visual Novel Screen */
+    #screen-reader {
+      padding-bottom: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .vn-stage {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      overflow: hidden;
+    }
+
+    .vn-background {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      transition: opacity 0.45s ease;
+    }
+
+    .vn-background svg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Character Sprites Layer */
+    .vn-characters {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 175px;
+      height: 350px;
+      z-index: 3;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .char-sprite {
+      width: 240px;
+      height: 330px;
+      transition: transform 0.35s cubic-bezier(0.2, 0.9, 0.3, 1), filter 0.3s ease;
+      filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.75));
+    }
+
+    .char-sprite.speaking {
+      transform: scale(1.03) translateY(0);
+    }
+
+    /* Reader Top Overlay Controls */
+    .vn-top-overlay {
+      position: absolute;
+      top: 8px;
+      left: 14px;
+      right: 14px;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .vn-back-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(15, 6, 28, 0.82);
+      border: 1px solid rgba(245, 208, 118, 0.45);
+      color: var(--gold-bright);
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .vn-scene-stats {
+      display: flex;
+      gap: 8px;
+      background: rgba(15, 6, 28, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      backdrop-filter: blur(6px);
+    }
+
+    /* Dialogue & Choices Container */
+    .vn-ui-layer {
+      position: relative;
+      z-index: 10;
+      padding: 0 14px calc(16px + var(--safe-bottom));
+      background: linear-gradient(180deg, transparent 0%, rgba(10, 4, 19, 0.84) 18%, rgba(10, 4, 19, 0.97) 100%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dialogue-box {
+      position: relative;
+      background: linear-gradient(160deg, rgba(35, 15, 58, 0.95) 0%, rgba(19, 8, 34, 0.98) 100%);
+      border: 1.5px solid rgba(245, 208, 118, 0.58);
+      border-radius: 18px;
+      padding: 20px 16px 16px;
+      min-height: 112px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+    }
+
+    .speaker-badge {
+      position: absolute;
+      top: -13px;
+      left: 18px;
+      padding: 4px 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #f5d076 0%, #d49835 100%);
+      color: #1b092e;
+      font-weight: 800;
+      font-size: 12.5px;
+      letter-spacing: 0.4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+    }
+
+    .speaker-badge.narrator {
+      background: linear-gradient(90deg, #9d5cff 0%, #6832c4 100%);
+      color: #fff;
+    }
+
+    .dialogue-text {
+      font-size: 15px;
+      line-height: 1.52;
+      color: #fff9fd;
+      margin: 0;
+      min-height: 48px;
+    }
+
+    .tap-continue-hint {
+      text-align: right;
+      font-size: 11px;
+      color: var(--gold);
+      margin-top: 8px;
+      opacity: 0.85;
+      font-weight: 600;
+      animation: bounceRight 1.4s infinite;
+    }
+
+    @keyframes bounceRight {
+      0%, 100% { transform: translateX(0); }
+      50% { transform: translateX(4px); }
+    }
+
+    /* Choices List */
+    .choices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .choice-btn {
+      width: 100%;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+      background: linear-gradient(135deg, rgba(42, 19, 68, 0.93) 0%, rgba(25, 10, 43, 0.96) 100%);
+      color: #fff;
+      font-size: 13.8px;
+      line-height: 1.38;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5);
+      transition: transform 0.12s ease;
+    }
+
+    .choice-btn:active {
+      transform: scale(0.98);
+    }
+
+    .choice-btn.premium {
+      background: linear-gradient(135deg, rgba(77, 31, 98, 0.96) 0%, rgba(46, 17, 74, 0.98) 100%);
+      border-color: var(--gold);
+      box-shadow: 0 6px 20px rgba(245, 208, 118, 0.24), inset 0 0 12px rgba(245, 208, 118, 0.12);
+    }
+
+    .choice-cost-pill {
+      flex-shrink: 0;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #1d0930;
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .choice-cost-pill.free-choice {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    /* Wardrobe Screen */
+    .wardrobe-container {
+      padding: 8px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .wardrobe-stage {
+      height: 270px;
+      border-radius: 22px;
+      background: radial-gradient(circle at 50% 35%, #4d1f7a 0%, #1c0a30 75%);
+      border: 1.5px solid rgba(245, 208, 118, 0.5);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55);
+    }
+
+    .wardrobe-stage-caption {
+      position: absolute;
+      bottom: 10px;
+      left: 14px;
+      right: 14px;
+      background: rgba(16, 6, 29, 0.84);
+      border: 1px solid rgba(245, 208, 118, 0.4);
+      border-radius: 12px;
+      padding: 7px 12px;
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--gold-bright);
+      font-weight: 700;
+      backdrop-filter: blur(6px);
+    }
+
+    .wardrobe-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .wardrobe-tab {
+      flex: 1;
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: rgba(32, 14, 52, 0.82);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+    }
+
+    .wardrobe-tab.active {
+      background: linear-gradient(135deg, rgba(245, 208, 118, 0.25), rgba(157, 92, 255, 0.25));
+      border-color: var(--gold);
+      color: var(--gold-bright);
+    }
+
+    .wardrobe-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .wardrobe-item-card {
+      padding: 12px;
+      border-radius: 16px;
+      background: rgba(30, 13, 49, 0.88);
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .wardrobe-item-card.equipped {
+      border-color: var(--gold);
+      background: linear-gradient(145deg, rgba(66, 28, 104, 0.92), rgba(30, 12, 51, 0.96));
+      box-shadow: 0 0 16px rgba(245, 208, 118, 0.25);
+    }
+
+    .wardrobe-item-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .wardrobe-item-bonus {
+      font-size: 11.5px;
+      color: var(--rose-soft);
+    }
+
+    .wardrobe-item-action {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--gold-bright);
+    }
+
+    .wardrobe-item-card.equipped .wardrobe-item-action {
+      background: linear-gradient(90deg, var(--gold), var(--gold-dark));
+      color: #1c0a2e;
+    }
+
+    /* Relationships / Favorites Screen */
+    .relations-list {
+      padding: 8px 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .relation-card {
+      padding: 14px;
+      border-radius: 18px;
+      background: var(--bg-card);
+      border: 1px solid rgba(245, 208, 118, 0.38);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .relation-avatar {
+      width: 64px;
+      height: 76px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 50% 30%, #52237c, #19092c);
+      border: 1.5px solid var(--gold);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .relation-details {
+      flex: 1;
+    }
+
+    .relation-name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .relation-name {
+      font-family: Georgia, serif;
+      font-size: 16.5px;
+      font-weight: 700;
+      color: var(--gold-bright);
+    }
+
+    .relation-status-pill {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 94, 151, 0.22);
+      border: 1px solid rgba(255, 94, 151, 0.5);
+      color: var(--rose-soft);
+      font-weight: 700;
+    }
+
+    .relation-story-tag {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+
+    .heart-bar-track {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+
+    .heart-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #ff5e97, #f5d076);
+      transition: width 0.4s ease;
+    }
+
+    /* Free Treasury / No-Donate Shop Screen */
+    .treasury-container {
+      padding: 8px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .no-donate-banner {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255, 94, 151, 0.25) 0%, rgba(245, 208, 118, 0.2) 100%);
+      border: 1.5px solid var(--gold);
+      text-align: center;
+    }
+
+    .no-donate-banner h3 {
+      margin: 0 0 6px;
+      font-family: Georgia, serif;
+      font-size: 18px;
+      color: var(--gold-bright);
+    }
+
+    .no-donate-banner p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #fff;
+    }
+
+    .treasury-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .treasury-card {
+      padding: 14px 12px;
+      border-radius: 16px;
+      background: var(--bg-card);
+      border: 1px solid rgba(245, 208, 118, 0.4);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .treasury-card:active {
+      transform: scale(0.97);
+    }
+
+    .treasury-icon {
+      font-size: 28px;
+    }
+
+    .treasury-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .treasury-desc {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .treasury-price {
+      width: 100%;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #1c0a2e;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 25;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 10px calc(10px + var(--safe-bottom));
+      background: rgba(15, 6, 26, 0.95);
+      border-top: 1px solid rgba(245, 208, 118, 0.35);
+      backdrop-filter: blur(12px);
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+
+    .nav-item.active {
+      color: var(--gold-bright);
+    }
+
+    .nav-item-icon {
+      font-size: 19px;
+    }
+
+    /* Modal Dialog */
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 80;
+      background: rgba(6, 2, 12, 0.84);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 390px;
+      border-radius: 22px;
+      background: linear-gradient(165deg, #2b1247 0%, #140724 100%);
+      border: 1.5px solid var(--gold);
+      padding: 20px 18px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.8);
+      text-align: center;
+    }
+
+    .modal-title {
+      font-family: Georgia, serif;
+      font-size: 21px;
+      color: var(--gold-bright);
+      margin: 0 0 8px;
+    }
+
+    .modal-body {
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: var(--text-main);
+      margin-bottom: 16px;
+    }
+
+    .modal-btn {
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 999px;
+      border: none;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: #1c0a2e;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <canvas id="particles-canvas"></canvas>
+
+    <!-- Romance Club Top Notification Toasts -->
+    <div id="rc-toast-container"></div>
+
+    <!-- Top Status Bar -->
+    <div class="top-bar">
+      <div class="currency-group">
+        <div class="currency-pill" onclick="switchTab('treasury')" title="Бесплатная сокровищница Стеши">
+          <span>🪙</span>
+          <span id="ui-coins">150</span>
+          <span class="plus-btn">+</span>
+        </div>
+        <div class="currency-pill" onclick="switchTab('treasury')" title="Чашки чая (бесплатное пополнение)">
+          <span>☕</span>
+          <span id="ui-tea">5/5</span>
+          <span class="plus-btn">+</span>
+        </div>
+        <div id="ui-fever-badge" class="fever-badge" onclick="toggleDiamondFever()">
+          💎 Лихорадка
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-btn" id="btn-audio" onclick="toggleAudio()" title="Музыка и звуки">🔇</button>
+        <button class="icon-btn" onclick="openLoveNoteModal()" title="Послание для Стеши">💌</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 1: LOBBY (STORIES) -->
+    <div id="screen-lobby" class="screen active">
+      <div class="lobby-header">
+        <div class="brand-subtitle">Специальное издание для Стеши</div>
+        <h1 class="brand-title">Клуб Романтики: Стеша</h1>
+      </div>
+
+      <!-- Heroine Quick Profile & Stats -->
+      <div class="heroine-showcase" onclick="switchTab('wardrobe')">
+        <div class="heroine-mini-avatar" id="lobby-avatar-preview"></div>
+        <div class="heroine-info">
+          <div class="heroine-name-row">
+            <span class="heroine-name">✨ Стеша</span>
+            <span class="wardrobe-link-chip">👗 Гардероб →</span>
+          </div>
+          <div style="font-size: 12px; color: var(--text-muted);" id="lobby-equipped-label">
+            Образ: Изумрудный шёлк
+          </div>
+          <div class="stats-row">
+            <div class="stat-chip">🌸 Романтика: <b id="stat-romance">0</b></div>
+            <div class="stat-chip">🔥 Страсть: <b id="stat-passion">0</b></div>
+            <div class="stat-chip">👑 Авторитет: <b id="stat-prestige">0</b></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">
+        <span>📚 Выбери историю</span>
+        <span style="color: var(--gold); font-size: 11px;">Твой выбор меняет судьбу</span>
+      </div>
+
+      <div class="stories-list" id="stories-container"></div>
+    </div>
+
+    <!-- SCREEN 2: WARDROBE -->
+    <div id="screen-wardrobe" class="screen">
+      <div class="lobby-header">
+        <div class="brand-subtitle">Королевская примерочная</div>
+        <h2 class="brand-title" style="font-size: 22px;">Гардероб Стеши</h2>
+      </div>
+
+      <div class="wardrobe-container">
+        <div class="wardrobe-stage">
+          <div id="wardrobe-avatar-large" style="width: 210px; height: 255px;"></div>
+          <div class="wardrobe-stage-caption" id="wardrobe-caption">
+            Наряд даёт бонус к статам и вызывает особые комплименты в историях!
+          </div>
+        </div>
+
+        <div class="wardrobe-tabs">
+          <div class="wardrobe-tab active" id="wtab-outfit" onclick="setWardrobeCategory('outfit')">👗 Наряды</div>
+          <div class="wardrobe-tab" id="wtab-hair" onclick="setWardrobeCategory('hair')">💇‍♀️ Причёски</div>
+          <div class="wardrobe-tab" id="wtab-accessory" onclick="setWardrobeCategory('accessory')">👑 Украшения</div>
+        </div>
+
+        <div class="wardrobe-grid" id="wardrobe-items-grid"></div>
+
+        <button class="play-btn" id="wardrobe-return-story-btn" style="display:none; justify-content:center; padding: 12px;" onclick="returnToStoryFromWardrobe()">
+          ✨ Вернуться в сцену в этом образе
+        </button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: RELATIONSHIPS (FAVORITES) -->
+    <div id="screen-relations" class="screen">
+      <div class="lobby-header">
+        <div class="brand-subtitle">Сердце героини</div>
+        <h2 class="brand-title" style="font-size: 22px;">Взаимоотношения</h2>
+      </div>
+      <div class="relations-list" id="relations-container"></div>
+    </div>
+
+    <!-- SCREEN 4: FREE TREASURY (NO DONATE!) -->
+    <div id="screen-treasury" class="screen">
+      <div class="lobby-header">
+        <div class="brand-subtitle">Никакого доната — всё по любви</div>
+        <h2 class="brand-title" style="font-size: 22px;">Сокровищница Стеши</h2>
+      </div>
+
+      <div class="treasury-container">
+        <div class="no-donate-banner">
+          <h3>💖 В этой игре донат строго запрещён!</h3>
+          <p>Все монетки, чашки чая и роскошные наряды для Стеши абсолютно бесплатны — за твою улыбку, хорошее настроение и любовь!</p>
+        </div>
+
+        <div class="treasury-grid">
+          <div class="treasury-card" onclick="spinWheelBonus()">
+            <div class="treasury-icon">🎡</div>
+            <div class="treasury-title">Колесо Фортуны</div>
+            <div class="treasury-desc">Испытай удачу и получи от +50 до +200 монеток!</div>
+            <div class="treasury-price">Крутить (0 ₽)</div>
+          </div>
+
+          <div class="treasury-card" onclick="claimSmileCoins()">
+            <div class="treasury-icon">😘</div>
+            <div class="treasury-title">За улыбку Стеши</div>
+            <div class="treasury-desc">Мгновенный подарок +100 золотых монеток</div>
+            <div class="treasury-price">Получить +100 🪙</div>
+          </div>
+
+          <div class="treasury-card" onclick="refillTeaFree()">
+            <div class="treasury-icon">🫖</div>
+            <div class="treasury-title">Чайная церемония</div>
+            <div class="treasury-desc">Полный запас ароматного чая (5/5 чашек)</div>
+            <div class="treasury-price">Налить чай (0 ₽)</div>
+          </div>
+
+          <div class="treasury-card" onclick="toggleDiamondFever()">
+            <div class="treasury-icon">💎</div>
+            <div class="treasury-title">Алмазная Лихорадка</div>
+            <div class="treasury-desc">Включает режим: ВСЕ платные выборы и наряды за 0 🪙!</div>
+            <div class="treasury-price" id="btn-fever-status">Включить 💎</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 5: VISUAL NOVEL READER -->
+    <div id="screen-reader" class="screen">
+      <div class="vn-stage">
+        <div class="vn-background" id="vn-bg"></div>
+
+        <div class="vn-top-overlay">
+          <div class="vn-back-pill" onclick="exitReaderToLobby()">
+            ← К историям
+          </div>
+          <div class="vn-scene-stats" id="vn-scene-stats">
+            <span>🌸 <b id="vn-stat-r">0</b></span>
+            <span>🔥 <b id="vn-stat-p">0</b></span>
+            <span>👑 <b id="vn-stat-a">0</b></span>
+          </div>
+          <div class="vn-back-pill" onclick="openWardrobeFromReader()">
+            👗 Образ
+          </div>
+        </div>
+
+        <div class="vn-characters" id="vn-characters"></div>
+
+        <div class="vn-ui-layer">
+          <div class="dialogue-box" id="vn-dialogue-box" onclick="handleDialogueTap()">
+            <div class="speaker-badge" id="vn-speaker">Стеша</div>
+            <p class="dialogue-text" id="vn-text"></p>
+            <div class="tap-continue-hint" id="vn-continue-hint">Нажми, чтобы продолжить ▸</div>
+          </div>
+
+          <div class="choices-list" id="vn-choices"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <div class="bottom-nav" id="bottom-nav">
+      <div class="nav-item active" id="nav-lobby" onclick="switchTab('lobby')">
+        <span class="nav-item-icon">📖</span>
+        <span>Истории</span>
+      </div>
+      <div class="nav-item" id="nav-wardrobe" onclick="switchTab('wardrobe')">
+        <span class="nav-item-icon">👗</span>
+        <span>Гардероб</span>
+      </div>
+      <div class="nav-item" id="nav-relations" onclick="switchTab('relations')">
+        <span class="nav-item-icon">❤️</span>
+        <span>Фавориты</span>
+      </div>
+      <div class="nav-item" id="nav-treasury" onclick="switchTab('treasury')">
+        <span class="nav-item-icon">🪙</span>
+        <span>Монетки</span>
+      </div>
+    </div>
+
+    <!-- Modal Dialog -->
+    <div class="modal-backdrop" id="modal-backdrop">
+      <div class="modal-card">
+        <h3 class="modal-title" id="modal-title">Послание для Стеши</h3>
+        <div class="modal-body" id="modal-body"></div>
+        <button class="modal-btn" onclick="closeModal()">С любовью 💖</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. TELEGRAM MINI APP SDK INITIALIZATION & HAPTICS
+       ========================================================================= */
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+        if (tg.setHeaderColor) tg.setHeaderColor('#12081f');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#12081f');
+      } catch (e) {}
+    }
+
+    function haptic(type = 'light') {
+      if (tg && tg.HapticFeedback) {
+        try {
+          if (type === 'success' || type === 'warning' || type === 'error') {
+            tg.HapticFeedback.notificationOccurred(type);
+          } else {
+            tg.HapticFeedback.impactOccurred(type);
+          }
+        } catch (e) {}
+      }
+    }
+
+    /* =========================================================================
+       2. WEB AUDIO SYNTHESIZER (Romantic Harp/Chime & Click SFX)
+       ========================================================================= */
+    let audioCtx = null;
+    let audioEnabled = false;
+    let ambientTimer = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playTone(freq, duration = 0.35, type = 'sine', gainVal = 0.06) {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(gainVal, audioCtx.currentTime + 0.03);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration + 0.02);
+      } catch (e) {}
+    }
+
+    function playChime(kind = 'tap') {
+      if (!audioEnabled) return;
+      initAudio();
+      if (kind === 'tap') {
+        playTone(587.33, 0.18, 'sine', 0.04);
+      } else if (kind === 'premium') {
+        [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
+          setTimeout(() => playTone(f, 0.45, 'triangle', 0.07), idx * 70);
+        });
+      } else if (kind === 'heart') {
+        [440, 554.37, 659.25, 880].forEach((f, idx) => {
+          setTimeout(() => playTone(f, 0.4, 'sine', 0.06), idx * 80);
+        });
+      }
+    }
+
+    function toggleAudio() {
+      initAudio();
+      audioEnabled = !audioEnabled;
+      document.getElementById('btn-audio').textContent = audioEnabled ? '🎵' : '🔇';
+      if (audioEnabled) {
+        playChime('premium');
+        showToast('🎵 Романтическая мелодия включена');
+        if (!ambientTimer) {
+          const notes = [293.66, 369.99, 440.0, 554.37, 587.33, 659.25, 440.0, 369.99];
+          let step = 0;
+          ambientTimer = setInterval(() => {
+            if (audioEnabled) {
+              playTone(notes[step % notes.length], 1.2, 'sine', 0.022);
+              step++;
+            }
+          }, 1400);
+        }
+      } else {
+        showToast('🔇 Звук выключен');
+      }
+    }
+
+    /* =========================================================================
+       3. WARDROBE CATALOG (OUTFITS, HAIRSTYLES, ACCESSORIES)
+       ========================================================================= */
+    const WARDROBE_ITEMS = {
+      outfit: [
+        {
+          id: 'emerald_silk',
+          name: 'Изумрудный шёлк',
+          bonusText: '+1 Романтика, утончённый силуэт',
+          cost: 0,
+          colors: ['#16795f', '#38d39f', '#f5d076']
+        },
+        {
+          id: 'starlight_ball',
+          name: 'Бальное «Звёздная полночь»',
+          bonusText: '+2 Авторитет, восторг всех фаворитов',
+          cost: 35,
+          colors: ['#2b1e6b', '#7b5cff', '#ffe89e']
+        },
+        {
+          id: 'ruby_passion',
+          name: 'Рубиновое пламя',
+          bonusText: '+2 Страсть, притягивает взгляды',
+          cost: 30,
+          colors: ['#8c1134', '#ff3b6b', '#f5d076']
+        },
+        {
+          id: 'paris_lace',
+          name: 'Парижский рассвет',
+          bonusText: '+2 Романтика, нежное кружево от-кутюр',
+          cost: 25,
+          colors: ['#b54882', '#ffb3d9', '#fff2b2']
+        },
+        {
+          id: 'valkyrie_armor',
+          name: 'Облачение Небесной Валькирии',
+          bonusText: '+2 Авторитет, +1 Страсть',
+          cost: 45,
+          colors: ['#4b2475', '#d9a74a', '#ffffff']
+        },
+        {
+          id: 'tokyo_velvet',
+          name: 'Полночный бархат Лувра',
+          bonusText: '+1 Страсть, +1 Авторитет',
+          cost: 20,
+          colors: ['#1e1233', '#9d5cff', '#f5d076']
+        }
+      ],
+      hair: [
+        {
+          id: 'hollywood_waves',
+          name: 'Голливудские локоны',
+          bonusText: 'Классический романтичный стиль',
+          cost: 0,
+          color: '#3b1e14',
+          highlight: '#703b28',
+          shape: 'waves'
+        },
+        {
+          id: 'royal_updo',
+          name: 'Королевский высокий пучок',
+          bonusText: '+1 Авторитет на светских раутах',
+          cost: 15,
+          color: '#29150e',
+          highlight: '#633422',
+          shape: 'updo'
+        },
+        {
+          id: 'rose_gold_long',
+          name: 'Клубничный блонд до пояса',
+          bonusText: '+1 Романтика, сияющие пряди',
+          cost: 20,
+          color: '#d47a87',
+          highlight: '#ffb8c6',
+          shape: 'long'
+        },
+        {
+          id: 'midnight_silk',
+          name: 'Шёлк тёмной ночи',
+          bonusText: '+1 Страсть, роковой образ',
+          cost: 20,
+          color: '#160d24',
+          highlight: '#4c2c7a',
+          shape: 'waves'
+        }
+      ],
+      accessory: [
+        {
+          id: 'none',
+          name: 'Без аксессуара',
+          bonusText: 'Естественная красота Стеши',
+          cost: 0
+        },
+        {
+          id: 'ocean_heart',
+          name: 'Кулон «Сердце Этериума»',
+          bonusText: '+1 Романтика, древний артефакт',
+          cost: 0
+        },
+        {
+          id: 'golden_tiara',
+          name: 'Золотая диадема Звёзд',
+          bonusText: '+2 Авторитет, королевский статус',
+          cost: 30
+        },
+        {
+          id: 'masquerade_mask',
+          name: 'Кружевная маска Тайны',
+          bonusText: '+1 Страсть, загадочность на балу',
+          cost: 25
+        }
+      ]
+    };
+
+    /* =========================================================================
+       4. LOVE INTERESTS / FAVORITES DATA
+       ========================================================================= */
+    const FAVORITES_INFO = {
+      lucius: {
+        id: 'lucius',
+        name: 'Люциус',
+        story: 'Секрет Небесной Академии',
+        role: 'Наследник Дома Пламени',
+        desc: 'Дерзкий, ироничный и опасный для чужих, но готовый сжечь весь мир ради одной улыбки Стеши.',
+        hairColor: '#1a1126',
+        eyeColor: '#ff526c',
+        coatColor: '#3b0e28',
+        accentColor: '#f5d076',
+        initialScore: 15
+      },
+      raphael: {
+        id: 'raphael',
+        name: 'Рафаэль',
+        story: 'Секрет Небесной Академии',
+        role: 'Хранитель Звёздного Света',
+        desc: 'Благородный и чуткий архонт, чьё сердце замирает каждый раз, когда Стеша оказывается рядом.',
+        hairColor: '#f2e2b6',
+        eyeColor: '#5ec2ff',
+        coatColor: '#1d3566',
+        accentColor: '#ffe89e',
+        initialScore: 15
+      },
+      adrian: {
+        id: 'adrian',
+        name: 'Адриан де Валь',
+        story: 'Огни Ночного Парижа',
+        role: 'Владелец Галереи Лувра',
+        desc: 'Загадочный меценат и ценитель искусства, который видит в Стеше свою главную музу.',
+        hairColor: '#382218',
+        eyeColor: '#52c49c',
+        coatColor: '#1d263b',
+        accentColor: '#f5d076',
+        initialScore: 15
+      },
+      kai: {
+        id: 'kai',
+        name: 'Кай',
+        story: 'Огни Ночного Парижа',
+        role: 'Музыкант и ночной фотограф',
+        desc: 'Свободный романтик, который дарит Стеше рассветы на крышах Парижа и пишет песни в её честь.',
+        hairColor: '#221c35',
+        eyeColor: '#b07cff',
+        coatColor: '#29153d',
+        accentColor: '#ff5e97',
+        initialScore: 15
+      },
+      beloved: {
+        id: 'beloved',
+        name: 'Твой Любимый (Хранитель Сердца)',
+        story: 'Тайна Хрустального Замка',
+        role: 'Тот, кто создал этот мир для тебя',
+        desc: 'Главный человек в реальной жизни и в этой сказке, чья любовь к Стеше не знает границ.',
+        hairColor: '#2d1c14',
+        eyeColor: '#f5d076',
+        coatColor: '#3d1759',
+        accentColor: '#ff5e97',
+        initialScore: 55
+      }
+    };
+
+    /* =========================================================================
+       5. PERSISTENT STATE (LOCALSTORAGE)
+       ========================================================================= */
+    const STORAGE_KEY = 'stesha_rc_save_v2';
+
+    const defaultState = {
+      coins: 150,
+      tea: 5,
+      diamondFever: false,
+      stats: {
+        romance: 2,
+        passion: 2,
+        prestige: 2
+      },
+      equipped: {
+        outfit: 'emerald_silk',
+        hair: 'hollywood_waves',
+        accessory: 'ocean_heart'
+      },
+      unlockedWardrobe: ['emerald_silk', 'hollywood_waves', 'none', 'ocean_heart'],
+      relations: {
+        lucius: 15,
+        raphael: 15,
+        adrian: 15,
+        kai: 15,
+        beloved: 55
+      },
+      storyProgress: {
+        academy: { node: 'start', completed: false },
+        paris: { node: 'start', completed: false },
+        castle: { node: 'start', completed: false }
+      }
+    };
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return JSON.parse(JSON.stringify(defaultState));
+        const parsed = JSON.parse(raw);
+        return {
+          ...defaultState,
+          ...parsed,
+          stats: { ...defaultState.stats, ...(parsed.stats || {}) },
+          equipped: { ...defaultState.equipped, ...(parsed.equipped || {}) },
+          relations: { ...defaultState.relations, ...(parsed.relations || {}) },
+          storyProgress: { ...defaultState.storyProgress, ...(parsed.storyProgress || {}) }
+        };
+      } catch (e) {
+        return JSON.parse(JSON.stringify(defaultState));
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+      updateTopBarUI();
+    }
+
+    /* =========================================================================
+       6. SVG ART ENGINE (BACKGROUNDS & DYNAMIC CHARACTER PORTRAITS)
+       ========================================================================= */
+    function renderBackgroundSVG(bgType) {
+      if (bgType === 'academy_clouds') {
+        return `<svg viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="sky1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#14072b"/>
+              <stop offset="50%" stop-color="#3a1863"/>
+              <stop offset="100%" stop-color="#7a327d"/>
+            </linearGradient>
+            <radialGradient id="moonGlow" cx="50%" cy="22%" r="35%">
+              <stop offset="0%" stop-color="#ffeab5" stop-opacity="0.9"/>
+              <stop offset="40%" stop-color="#f5a976" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#3a1863" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="400" height="700" fill="url(#sky1)"/>
+          <circle cx="200" cy="155" r="140" fill="url(#moonGlow)"/>
+          <circle cx="200" cy="155" r="46" fill="#fff5d6" opacity="0.95"/>
+          <polygon points="90,420 115,210 140,420" fill="#1e0c38"/>
+          <polygon points="260,430 285,195 310,430" fill="#1e0c38"/>
+          <polygon points="155,440 200,150 245,440" fill="#271047" stroke="#f5d076" stroke-width="1"/>
+          <rect x="194" y="240" width="12" height="28" rx="6" fill="#ffe89e"/>
+          <rect x="194" y="290" width="12" height="28" rx="6" fill="#ffe89e"/>
+          <ellipse cx="120" cy="460" rx="160" ry="55" fill="#4b216b" opacity="0.7"/>
+          <ellipse cx="300" cy="490" rx="150" ry="60" fill="#2e1149" opacity="0.85"/>
+        </svg>`;
+      }
+      if (bgType === 'ballroom') {
+        return `<svg viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="ballBg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#19082c"/>
+              <stop offset="60%" stop-color="#38145c"/>
+              <stop offset="100%" stop-color="#140621"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="700" fill="url(#ballBg)"/>
+          <path d="M40,420 L40,180 A55,55 0 0,1 150,180 L150,420 Z" fill="#231347" stroke="#f5d076" stroke-width="2"/>
+          <path d="M250,420 L250,180 A55,55 0 0,1 360,180 L360,420 Z" fill="#231347" stroke="#f5d076" stroke-width="2"/>
+          <line x1="200" y1="0" x2="200" y2="95" stroke="#f5d076" stroke-width="3"/>
+          <ellipse cx="200" cy="110" rx="75" ry="22" fill="none" stroke="#f5d076" stroke-width="3"/>
+          <circle cx="135" cy="105" r="7" fill="#fff4bd"/>
+          <circle cx="165" cy="118" r="8" fill="#fff4bd"/>
+          <circle cx="200" cy="122" r="10" fill="#fff4bd"/>
+          <circle cx="235" cy="118" r="8" fill="#fff4bd"/>
+          <circle cx="265" cy="105" r="7" fill="#fff4bd"/>
+          <polygon points="0,430 400,430 400,700 0,700" fill="#240c3d" opacity="0.9"/>
+        </svg>`;
+      }
+      if (bgType === 'paris_night') {
+        return `<svg viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="parisSky" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#0d0826"/>
+              <stop offset="55%" stop-color="#29164f"/>
+              <stop offset="100%" stop-color="#612869"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="700" fill="url(#parisSky)"/>
+          <circle cx="310" cy="120" r="34" fill="#fff3c4" opacity="0.9"/>
+          <polygon points="200,115 188,280 212,280" fill="#d9a648" opacity="0.85"/>
+          <polygon points="185,280 162,430 238,430 215,280" fill="#b8842d" opacity="0.85"/>
+          <path d="M150,430 L175,370 L225,370 L250,430 Z" fill="#180a2e"/>
+          <rect x="0" y="425" width="400" height="275" fill="#140726"/>
+          <circle cx="70" cy="445" r="3" fill="#ffe596"/>
+          <circle cx="120" cy="450" r="3" fill="#ff85c0"/>
+          <circle cx="180" cy="442" r="3" fill="#ffe596"/>
+          <circle cx="250" cy="448" r="3" fill="#ffe596"/>
+          <circle cx="325" cy="444" r="3" fill="#ff85c0"/>
+        </svg>`;
+      }
+      return `<svg viewBox="0 0 400 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="castleBg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#15082b"/>
+            <stop offset="50%" stop-color="#3d155f"/>
+            <stop offset="100%" stop-color="#190830"/>
+          </linearGradient>
+        </defs>
+        <rect width="400" height="700" fill="url(#castleBg)"/>
+        <polygon points="200,80 250,240 200,400 150,240" fill="#ff85c0" opacity="0.18" stroke="#f5d076" stroke-width="1.5"/>
+        <polygon points="100,150 135,260 100,370 65,260" fill="#9d5cff" opacity="0.2" stroke="#ffe89e" stroke-width="1"/>
+        <polygon points="300,150 335,260 300,370 265,260" fill="#9d5cff" opacity="0.2" stroke="#ffe89e" stroke-width="1"/>
+        <circle cx="200" cy="240" r="95" fill="none" stroke="#f5d076" stroke-width="1.2" stroke-dasharray="5,5"/>
+      </svg>`;
+    }
+
+    function renderSteshaSVG(emotion = 'smile') {
+      const outfit = WARDROBE_ITEMS.outfit.find(o => o.id === state.equipped.outfit) || WARDROBE_ITEMS.outfit[0];
+      const hair = WARDROBE_ITEMS.hair.find(h => h.id === state.equipped.hair) || WARDROBE_ITEMS.hair[0];
+      const acc = state.equipped.accessory;
+
+      const [c1, c2, c3] = outfit.colors;
+      const mouthPath = emotion === 'surprised'
+        ? 'M 96,125 Q 100,131 104,125 Q 100,121 96,125'
+        : emotion === 'blush'
+        ? 'M 93,124 Q 100,130 107,124'
+        : 'M 92,123 Q 100,131 108,123';
+
+      const blushOpacity = emotion === 'blush' ? '0.65' : '0.32';
+
+      return `<svg viewBox="0 0 200 280" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="dressGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="${c2}"/>
+            <stop offset="65%" stop-color="${c1}"/>
+            <stop offset="100%" stop-color="#120721"/>
+          </linearGradient>
+          <linearGradient id="hairGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="${hair.highlight}"/>
+            <stop offset="100%" stop-color="${hair.color}"/>
+          </linearGradient>
+          <linearGradient id="skinGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffe7dc"/>
+            <stop offset="100%" stop-color="#f5c6b3"/>
+          </linearGradient>
+        </defs>
+
+        ${hair.shape !== 'updo' ? `<path d="M52,75 Q38,150 48,225 Q100,240 152,225 Q162,150 148,75 Z" fill="url(#hairGrad)"/>` : `<circle cx="100" cy="42" r="26" fill="url(#hairGrad)" stroke="${c3}" stroke-width="2"/>`}
+
+        <path d="M86,132 L86,162 L114,162 L114,132 Z" fill="url(#skinGrad)"/>
+        <path d="M44,175 Q100,152 156,175 L168,280 L32,280 Z" fill="url(#skinGrad)"/>
+
+        <path d="M42,178 Q72,165 100,182 Q128,165 158,178 L174,280 L26,280 Z" fill="url(#dressGrad)" stroke="${c3}" stroke-width="2"/>
+        <path d="M72,175 L100,220 L128,175" fill="none" stroke="${c3}" stroke-width="1.8" opacity="0.85"/>
+
+        ${acc === 'ocean_heart' ? `
+          <path d="M80,158 Q100,174 120,158" fill="none" stroke="#f5d076" stroke-width="1.5"/>
+          <polygon points="100,164 106,171 100,179 94,171" fill="#38d9ff" stroke="#fff" stroke-width="1"/>
+        ` : ''}
+
+        <ellipse cx="100" cy="96" rx="36" ry="44" fill="url(#skinGrad)"/>
+
+        <ellipse cx="78" cy="110" rx="8" ry="4.5" fill="#ff6b9d" opacity="${blushOpacity}"/>
+        <ellipse cx="122" cy="110" rx="8" ry="4.5" fill="#ff6b9d" opacity="${blushOpacity}"/>
+
+        <ellipse cx="83" cy="97" rx="6.5" ry="5" fill="#fff"/>
+        <ellipse cx="117" cy="97" rx="6.5" ry="5" fill="#fff"/>
+        <circle cx="83" cy="97" r="4.2" fill="#498767"/>
+        <circle cx="117" cy="97" r="4.2" fill="#498767"/>
+        <circle cx="81.5" cy="95.5" r="1.5" fill="#fff"/>
+        <circle cx="115.5" cy="95.5" r="1.5" fill="#fff"/>
+        <path d="M74,92 Q83,87 91,92" fill="none" stroke="#2c1610" stroke-width="2" stroke-linecap="round"/>
+        <path d="M109,92 Q117,87 126,92" fill="none" stroke="#2c1610" stroke-width="2" stroke-linecap="round"/>
+
+        <path d="M74,85 Q83,81 91,84" fill="none" stroke="${hair.color}" stroke-width="1.8" stroke-linecap="round"/>
+        <path d="M109,84 Q117,81 126,85" fill="none" stroke="${hair.color}" stroke-width="1.8" stroke-linecap="round"/>
+
+        <path d="M100,101 L98,112 L102,113" fill="none" stroke="#d99b84" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="${mouthPath}" fill="none" stroke="#e04873" stroke-width="2.6" stroke-linecap="round"/>
+
+        <path d="M62,88 Q75,54 102,60 Q128,54 138,88 Q128,68 100,72 Q74,68 62,88 Z" fill="url(#hairGrad)"/>
+
+        ${acc === 'golden_tiara' ? `
+          <polygon points="75,60 88,45 100,34 112,45 125,60" fill="#f5d076" stroke="#fff" stroke-width="1.2"/>
+          <circle cx="100" cy="47" r="3.5" fill="#ff5e97"/>
+        ` : ''}
+        ${acc === 'masquerade_mask' ? `
+          <path d="M68,86 Q83,78 100,90 Q117,78 132,86 Q128,107 114,104 Q100,97 86,104 Q72,107 68,86 Z" fill="rgba(28, 10, 46, 0.85)" stroke="#f5d076" stroke-width="1.5"/>
+        ` : ''}
+      </svg>`;
+    }
+
+    function renderCharacterSVG(charId) {
+      if (charId === 'stesha') return renderSteshaSVG('smile');
+      const fav = FAVORITES_INFO[charId] || FAVORITES_INFO.lucius;
+      return `<svg viewBox="0 0 200 280" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="coat_${charId}" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="${fav.coatColor}"/>
+            <stop offset="100%" stop-color="#0f071c"/>
+          </linearGradient>
+        </defs>
+        <path d="M30,175 Q100,152 170,175 L182,280 L18,280 Z" fill="url(#coat_${charId})" stroke="${fav.accentColor}" stroke-width="2"/>
+        <path d="M72,166 L100,230 L128,166" fill="#fff8fc" opacity="0.9"/>
+        <path d="M66,166 L100,235 L134,166" fill="none" stroke="${fav.accentColor}" stroke-width="2.5"/>
+        <rect x="85" y="130" width="30" height="36" fill="#f2c6b6"/>
+        <ellipse cx="100" cy="94" rx="37" ry="45" fill="#f7d2c4"/>
+        <path d="M58,88 Q62,42 100,44 Q138,42 142,88 Q128,62 100,66 Q72,62 58,88 Z" fill="${fav.hairColor}"/>
+        <ellipse cx="83" cy="95" rx="6" ry="4.2" fill="#fff"/>
+        <ellipse cx="117" cy="95" rx="6" ry="4.2" fill="#fff"/>
+        <circle cx="83" cy="95" r="3.6" fill="${fav.eyeColor}"/>
+        <circle cx="117" cy="95" r="3.6" fill="${fav.eyeColor}"/>
+        <path d="M74,86 Q83,83 92,86" fill="none" stroke="${fav.hairColor}" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M108,86 Q117,83 126,86" fill="none" stroke="${fav.hairColor}" stroke-width="2.2" stroke-linecap="round"/>
+        <path d="M100,98 L98,111 L102,112" fill="none" stroke="#cfa08e" stroke-width="1.5"/>
+        <path d="M91,122 Q100,128 110,121" fill="none" stroke="#b86b6b" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>`;
+    }
+
+    /* =========================================================================
+       7. THREE INTERACTIVE BRANCHING STORIES FOR STESHA
+       ========================================================================= */
+    const STORIES = {
+      academy: {
+        id: 'academy',
+        title: 'Секрет Небесной Академии',
+        genres: ['Фэнтези', 'Мистика', 'Романтика'],
+        desc: 'В закрытой Академии Этериума пробуждается древняя сила Стеши. Кому ты доверишь своё сердце — пламенному Люциусу или звёздному хранителю Рафаэлю?',
+        favorites: ['Люциус', 'Рафаэль'],
+        bg: 'academy_clouds',
+        nodes: {
+          start: {
+            bg: 'academy_clouds',
+            speaker: 'Рассказчик',
+            char: 'stesha',
+            emotion: 'surprised',
+            text: 'Хрустальные шпили Академии Этериума парят над облаками. Сегодня вечером состоится Бал Равновесия, где решится судьба первокурсников — и твоя, Стеша.',
+            next: 'scene_2'
+          },
+          scene_2: {
+            bg: 'academy_clouds',
+            speaker: 'Стеша',
+            char: 'stesha',
+            emotion: 'smile',
+            text: 'Мой кулон начинает мягко светиться. На мраморной террасе появляются две фигуры — наследник Дома Пламени Люциус и хранитель Звёздного крыла Рафаэль.',
+            choices: [
+              {
+                text: '🔥 Встретить дерзкий взгляд Люциуса с уверенной улыбкой',
+                cost: 0,
+                effects: { passion: 1, rel_lucius: 5 },
+                toast: '🔥 +1 Страсть! Люциус заинтригован',
+                next: 'meet_lucius'
+              },
+              {
+                text: '🌸 Подойти к Рафаэлю, любующемуся созвездиями над башней',
+                cost: 0,
+                effects: { romance: 1, rel_raphael: 5 },
+                toast: '🌸 +1 Романтика! Рафаэль рад тебе',
+                next: 'meet_raphael'
+              },
+              {
+                text: '👑 Пройти между ними по-королевски, заставив обоих обернуться (15 🪙)',
+                cost: 15,
+                effects: { prestige: 2, passion: 1, rel_lucius: 10, rel_raphael: 10 },
+                toast: '👑 +2 Авторитет! Оба фаворита не могут отвести от тебя глаз!',
+                next: 'meet_both_vip'
+              }
+            ]
+          },
+          meet_lucius: {
+            bg: 'academy_clouds',
+            speaker: 'Люциус',
+            char: 'lucius',
+            text: '«Смелый взгляд, Стеша. Большинство новичков опускают глаза перед огнём моего Дома. Но в тебе я чувствую стихию, равную моей».',
+            choices: [
+              {
+                text: '💎 Шагнуть к нему вплотную и позволить его ладони согреть твои пальцы (25 🪙)',
+                cost: 25,
+                effects: { passion: 2, rel_lucius: 20 },
+                toast: '❤️ Отношения с Люциусом значительно улучшились!',
+                next: 'wardrobe_prep'
+              },
+              {
+                text: 'Улыбнуться и сказать, что ты ещё удивишь его на балу',
+                cost: 0,
+                effects: { romance: 1, rel_lucius: 8 },
+                toast: '❤️ Люциус с нетерпением ждёт встречи в бальном зале',
+                next: 'wardrobe_prep'
+              }
+            ]
+          },
+          meet_raphael: {
+            bg: 'academy_clouds',
+            speaker: 'Рафаэль',
+            char: 'raphael',
+            text: '«Звёзды сегодня поют твоё имя, Стеша. Я сохранил для тебя редкий цветок Этериума — он распускается лишь раз в столетие».',
+            choices: [
+              {
+                text: '💎 Позволить Рафаэлю вплести сияющий цветок в твои волосы (25 🪙)',
+                cost: 25,
+                effects: { romance: 2, rel_raphael: 20 },
+                toast: '❤️ Сердце Рафаэля принадлежит тебе! Отношения улучшились!',
+                next: 'wardrobe_prep'
+              },
+              {
+                text: 'Нежно поблагодарить его за такой чуткий подарок',
+                cost: 0,
+                effects: { romance: 1, rel_raphael: 8 },
+                toast: '❤️ Рафаэль тепло улыбается тебе',
+                next: 'wardrobe_prep'
+              }
+            ]
+          },
+          meet_both_vip: {
+            bg: 'academy_clouds',
+            speaker: 'Люциус и Рафаэль',
+            char: 'lucius',
+            text: 'Люциус делает шаг вперёд: «Первый танец на Балу Равновесия будет моим, Стеша». Рафаэль мягко возражает: «Пусть это решит само сердце Стеши».',
+            choices: [
+              {
+                text: 'Подмигнуть Люциусу: «Посмотрим, сможешь ли ты меня впечатлить»',
+                cost: 0,
+                effects: { passion: 1, rel_lucius: 12 },
+                toast: '❤️ Люциус принимает твой вызов!',
+                next: 'wardrobe_prep'
+              },
+              {
+                text: 'Подарить нежную улыбку Рафаэлю: «До встречи под куполом звёзд»',
+                cost: 0,
+                effects: { romance: 1, rel_raphael: 12 },
+                toast: '❤️ Рафаэль счастлив твоему ответу!',
+                next: 'wardrobe_prep'
+              }
+            ]
+          },
+          wardrobe_prep: {
+            bg: 'ballroom',
+            speaker: 'Стеша',
+            char: 'stesha',
+            emotion: 'blush',
+            text: 'Перед тем как золотые двери Большого Зала распахнутся, можно заглянуть в королевскую примерочную и выбрать наряд, от которого у всех перехватит дыхание!',
+            choices: [
+              {
+                text: '👗 Открыть Гардероб Стеши и выбрать бальный образ',
+                cost: 0,
+                action: 'open_wardrobe',
+                next: 'outfit_reaction'
+              },
+              {
+                text: '✨ Войти в зал в текущем наряде',
+                cost: 0,
+                effects: { prestige: 1 },
+                toast: '👑 +1 Авторитет за уверенность!',
+                next: 'outfit_reaction'
+              }
+            ]
+          },
+          outfit_reaction: {
+            bg: 'ballroom',
+            speaker: 'Рассказчик',
+            char: 'stesha',
+            dynamicText: () => {
+              const eq = WARDROBE_ITEMS.outfit.find(o => o.id === state.equipped.outfit) || WARDROBE_ITEMS.outfit[0];
+              if (eq.cost > 0) {
+                return `Ты спускаешься по парадной лестнице в роскошном образе «${eq.name}». По залу проносится восхищённый шёпот — Верховный Совет присуждает тебе особый знак почёта!`;
+              }
+              return `Ты грациозно входишь в сияющий зал в образе «${eq.name}». Твоя естественная грация и улыбка притягивают все взгляды.`;
+            },
+            next: 'ball_secret_trial'
+          },
+          ball_secret_trial: {
+            bg: 'ballroom',
+            speaker: 'Верховный Архонт',
+            char: 'raphael',
+            text: 'В центре зала вспыхивает Кристалл Равновесия: «Стеша, древний артефакт признал твою силу. Каким путём ты поведёшь Академию в новую эпоху?»',
+            choices: [
+              {
+                text: '🌸 Путём Гармонии, Любви и Вдохновения (Требуется Романтика)',
+                cost: 0,
+                effects: { romance: 2, prestige: 1 },
+                toast: '🌸 Кристалл озаряется нежным светом гармонии!',
+                next: 'ball_climax'
+              },
+              {
+                text: '🔥 Путём Смелости, Огня и Свободы (Требуется Страсть)',
+                cost: 0,
+                effects: { passion: 2, prestige: 1 },
+                toast: '🔥 Кристалл вспыхивает пламенем силы!',
+                next: 'ball_climax'
+              }
+            ]
+          },
+          ball_climax: {
+            bg: 'ballroom',
+            speaker: 'Рассказчик',
+            char: 'stesha',
+            text: 'Звучит главная мелодия ночи. К тебе одновременно направляются Люциус и Рафаэль. С кем ты проведёшь этот волшебный финал вечера?',
+            choices: [
+              {
+                text: '💎 Уединиться с Люциусом на звёздном балконе и подарить ему поцелуй (30 🪙)',
+                cost: 30,
+                effects: { passion: 2, rel_lucius: 30, rewardCoins: 45 },
+                toast: '❤️ Люциус признаётся, что ты — его единственное наваждение! +45 🪙',
+                next: 'ending_academy_lucius'
+              },
+              {
+                text: '💎 Вальсировать с Рафаэлем в облаках под падающими звёздами (30 🪙)',
+                cost: 30,
+                effects: { romance: 2, rel_raphael: 30, rewardCoins: 45 },
+                toast: '❤️ Рафаэль клянётся оберегать твоё сердце вечно! +45 🪙',
+                next: 'ending_academy_raphael'
+              },
+              {
+                text: '👑 Принять титул Первой Леди Этериума под овации всего зала (Бесплатно)',
+                cost: 0,
+                effects: { prestige: 3, rewardCoins: 30 },
+                toast: '👑 Блестящий триумф Стеши! Награда: +30 🪙',
+                next: 'ending_academy_queen'
+              }
+            ]
+          },
+          ending_academy_lucius: {
+            bg: 'academy_clouds',
+            speaker: 'Люциус (Финал ветки)',
+            char: 'lucius',
+            text: '«Пусть весь мир сгорит, Стеша, но я никому тебя не отдам. Ты — моя королева пламени». Серия завершена на высший ранг любви!',
+            isEnding: true
+          },
+          ending_academy_raphael: {
+            bg: 'academy_clouds',
+            speaker: 'Рафаэль (Финал ветки)',
+            char: 'raphael',
+            text: '«Среди миллиона созвездий я искал только тебя, Стеша. Мои крылья и моё сердце — навсегда твои». Серия завершена на высший ранг романтики!',
+            isEnding: true
+          },
+          ending_academy_queen: {
+            bg: 'ballroom',
+            speaker: 'Финал серии',
+            char: 'stesha',
+            text: 'Ты покорила Небесную Академию своей мудростью и красотой! Оба фаворита мечтают завоевать твоё расположение в следующих главах.',
+            isEnding: true
+          }
+        }
+      },
+
+      paris: {
+        id: 'paris',
+        title: 'Огни Ночного Парижа',
+        genres: ['Романтика', 'Мода', 'Интрига'],
+        desc: 'Стеша — почётная гостья закрытого показа в Лувре. Ночной Париж, тайные поклонники, высокая мода и свидание под звёздами.',
+        favorites: ['Адриан де Валь', 'Кай'],
+        bg: 'paris_night',
+        nodes: {
+          start: {
+            bg: 'paris_night',
+            speaker: 'Рассказчик',
+            char: 'stesha',
+            text: 'Полночь в Париже. Огни Эйфелевой башни отражаются в Сене, а у входа в закрытое крыло Лувра расстилается красная дорожка специально для тебя, Стеша.',
+            next: 'paris_wardrobe'
+          },
+          paris_wardrobe: {
+            bg: 'paris_night',
+            speaker: 'Стеша',
+            char: 'stesha',
+            emotion: 'smile',
+            text: 'Фотографы Vogue и Elle уже приготовили камеры. Хочешь примерить новый кутюрный наряд перед выходом на красную дорожку?',
+            choices: [
+              {
+                text: '👗 Заглянуть в Гардероб и выбрать парижский образ',
+                cost: 0,
+                action: 'open_wardrobe',
+                next: 'paris_2'
+              },
+              {
+                text: '✨ Выйти к прессе в своём текущем образе',
+                cost: 0,
+                effects: { prestige: 1 },
+                toast: '📸 Вспышки камер озаряют ночь! +1 Авторитет',
+                next: 'paris_2'
+              }
+            ]
+          },
+          paris_2: {
+            bg: 'paris_night',
+            speaker: 'Адриан де Валь',
+            char: 'adrian',
+            text: 'Владелец галереи Адриан де Валь встречает тебя у стеклянной пирамиды Лувра: «Мадемуазель Стеша, вы затмили все шедевры моей коллекции».',
+            choices: [
+              {
+                text: '💎 Принять приглашение Адриана в закрытый зал с бесценными полотнами (25 🪙)',
+                cost: 25,
+                effects: { romance: 2, prestige: 1, rel_adrian: 25 },
+                toast: '❤️ Адриан раскрывает тебе тайну своей главной картины!',
+                next: 'paris_kai'
+              },
+              {
+                text: '🔥 Ответить с очаровательной улыбкой, что главное искусство — это сама жизнь',
+                cost: 0,
+                effects: { passion: 1, rel_adrian: 10 },
+                toast: '🔥 +1 Страсть! Адриан восхищён твоим остроумием',
+                next: 'paris_kai'
+              }
+            ]
+          },
+          paris_kai: {
+            bg: 'paris_night',
+            speaker: 'Кай',
+            char: 'kai',
+            text: 'На открытой террасе к тебе подходит Кай с винтажным фотоаппаратом: «Стеша! Я сделал один кадр, и это лучший портрет в моей жизни. Сбежим отсюда на крышу Монмартра?»',
+            choices: [
+              {
+                text: '💎 Умчаться с Каем на ночную крышу пить горячий шоколад и слушать гитару (30 🪙)',
+                cost: 30,
+                effects: { passion: 2, romance: 1, rel_kai: 30, rewardCoins: 40 },
+                toast: '❤️ Романтическая ночь над Парижем с Каем! Награда: +40 🪙',
+                next: 'ending_paris_kai'
+              },
+              {
+                text: '💎 Подняться с Адрианом на частную террасу с видом на Эйфелеву башню (30 🪙)',
+                cost: 30,
+                effects: { prestige: 2, romance: 2, rel_adrian: 30, rewardCoins: 40 },
+                toast: '❤️ Огни Эйфелевой башни вспыхивают в твою честь! Награда: +40 🪙',
+                next: 'ending_paris_adrian'
+              },
+              {
+                text: '👑 Остаться в центре внимания на главном дефиле и получить Гран-при вечера',
+                cost: 0,
+                effects: { prestige: 2, rewardCoins: 25 },
+                toast: '👑 Париж рукоплещет Стеше! Награда: +25 🪙',
+                next: 'ending_paris_star'
+              }
+            ]
+          },
+          ending_paris_kai: {
+            bg: 'paris_night',
+            speaker: 'Кай (Финал ветки)',
+            char: 'kai',
+            text: '«Смотри, Стеша: над Парижем занимается розовый рассвет, но я вижу только твои глаза. Эта песня — навсегда твоя».',
+            isEnding: true
+          },
+          ending_paris_adrian: {
+            bg: 'paris_night',
+            speaker: 'Адриан де Валь (Финал ветки)',
+            char: 'adrian',
+            text: '«По моему сигналу башня засияла миллионами огней специально для тебя, Стеша. Весь Париж сегодня принадлежит тебе».',
+            isEnding: true
+          },
+          ending_paris_star: {
+            bg: 'paris_night',
+            speaker: 'Финал серии',
+            char: 'stesha',
+            text: 'Ты стала главной иконой стиля ночного Парижа! Модные дома мечтают о сотрудничестве с тобой, а поклонники ждут новой встречи.',
+            isEnding: true
+          }
+        }
+      },
+
+      castle: {
+        id: 'castle',
+        title: 'Тайна Хрустального Замка',
+        genres: ['Любовь', 'Сказка', 'Для Стеши 💖'],
+        desc: 'Особенная история, созданная в подарок для самой прекрасной девушки — Стеши. Пройди путь к Хрустальному Сердцу и открой главное признание.',
+        favorites: ['Твой Любимый'],
+        bg: 'castle_crystal',
+        nodes: {
+          start: {
+            bg: 'castle_crystal',
+            speaker: 'Хранитель Сердца',
+            char: 'beloved',
+            text: '«Добро пожаловать в Хрустальный Замок, моя любимая Стеша. Каждый кристалл здесь хранит моменты радости, нежности и восхищения тобой».',
+            choices: [
+              {
+                text: '💖 Улыбнуться и шагнуть навстречу волшебству',
+                cost: 0,
+                effects: { romance: 2, prestige: 2, rel_beloved: 20 },
+                toast: '💖 +2 Романтика, +2 Авторитет! Этот мир создан только для тебя!',
+                next: 'castle_2'
+              }
+            ]
+          },
+          castle_2: {
+            bg: 'castle_crystal',
+            speaker: 'Зеркало Судьбы',
+            char: 'stesha',
+            emotion: 'blush',
+            text: 'Перед тобой сияет Древнее Зеркало. Оно спрашивает: «В чём главный секрет очарования Стеши, перед которым невозможно устоять?»',
+            choices: [
+              {
+                text: '🌸 В её самой нежной и искренней улыбке, согревающей всё вокруг',
+                cost: 0,
+                effects: { romance: 3, rel_beloved: 25 },
+                toast: '🌸 Зеркало озаряется нежным светом любви!',
+                next: 'castle_gift'
+              },
+              {
+                text: '🔥 В её ярком характере, красоте и невероятной харизме',
+                cost: 0,
+                effects: { passion: 3, rel_beloved: 25 },
+                toast: '🔥 Зеркало вспыхивает золотыми искрами восторга!',
+                next: 'castle_gift'
+              },
+              {
+                text: '👑 В том, что Стеша — настоящая королева в любой истории!',
+                cost: 0,
+                effects: { prestige: 3, rel_beloved: 25 },
+                toast: '👑 Королевский выбор!',
+                next: 'castle_gift'
+              }
+            ]
+          },
+          castle_gift: {
+            bg: 'castle_crystal',
+            speaker: 'Хранитель Сердца',
+            char: 'beloved',
+            text: 'На хрустальном пьедестале раскрывается шкатулка со звёздным светом. Какое заветное желание ты загадаешь прямо сейчас?',
+            choices: [
+              {
+                text: '✨ Бесконечное счастье, путешествия и самые тёплые объятия',
+                cost: 0,
+                effects: { romance: 2, rewardCoins: 75 },
+                toast: '💖 Желание обязательно сбудется! Подарок: +75 🪙',
+                next: 'castle_final'
+              },
+              {
+                text: '💫 Чтобы каждый наш день был полон романтики и улыбок',
+                cost: 0,
+                effects: { passion: 2, rewardCoins: 75 },
+                toast: '💖 Так и будет! Подарок: +75 🪙',
+                next: 'castle_final'
+              }
+            ]
+          },
+          castle_final: {
+            bg: 'castle_crystal',
+            speaker: 'Признание для Стеши',
+            char: 'beloved',
+            text: '«Стеша, в любой вселенной, в любой истории и при любом выборе — моё сердце всегда выбирает только тебя. Ты — моё самое большое счастье и вдохновение. Я очень тебя люблю!» 💖',
+            isEnding: true
+          }
+        }
+      }
+    };
+
+    /* =========================================================================
+       8. UI RENDERING & NAVIGATION
+       ========================================================================= */
+    let currentTab = 'lobby';
+    let currentWardrobeCat = 'outfit';
+    let activeStoryId = null;
+    let activeNodeId = null;
+    let openedWardrobeFromStory = false;
+
+    function showToast(message) {
+      const container = document.getElementById('rc-toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'rc-toast';
+      toast.innerHTML = `<span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 2900);
+    }
+
+    function updateTopBarUI() {
+      document.getElementById('ui-coins').textContent = state.coins;
+      document.getElementById('ui-tea').textContent = `${state.tea}/5`;
+      document.getElementById('stat-romance').textContent = state.stats.romance;
+      document.getElementById('stat-passion').textContent = state.stats.passion;
+      document.getElementById('stat-prestige').textContent = state.stats.prestige;
+
+      const feverBadge = document.getElementById('ui-fever-badge');
+      const feverBtn = document.getElementById('btn-fever-status');
+      if (state.diamondFever) {
+        feverBadge.classList.add('active');
+        if (feverBtn) feverBtn.textContent = 'Активна ✨ (Выкл)';
+      } else {
+        feverBadge.classList.remove('active');
+        if (feverBtn) feverBtn.textContent = 'Включить 💎';
+      }
+
+      const eqOutfit = WARDROBE_ITEMS.outfit.find(o => o.id === state.equipped.outfit) || WARDROBE_ITEMS.outfit[0];
+      const lbl = document.getElementById('lobby-equipped-label');
+      if (lbl) lbl.textContent = `Образ: ${eqOutfit.name}`;
+
+      const lobbyAvatar = document.getElementById('lobby-avatar-preview');
+      if (lobbyAvatar) lobbyAvatar.innerHTML = renderSteshaSVG('smile');
+    }
+
+    function switchTab(tabName) {
+      haptic('light');
+      playChime('tap');
+      currentTab = tabName;
+
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+      const bottomNav = document.getElementById('bottom-nav');
+      if (tabName === 'reader') {
+        bottomNav.style.display = 'none';
+        document.getElementById('screen-reader').classList.add('active');
+      } else {
+        bottomNav.style.display = 'flex';
+        document.getElementById(`screen-${tabName}`).classList.add('active');
+        const navEl = document.getElementById(`nav-${tabName}`);
+        if (navEl) navEl.classList.add('active');
+      }
+
+      if (tabName === 'lobby') renderLobbyStories();
+      if (tabName === 'wardrobe') renderWardrobe();
+      if (tabName === 'relations') renderRelations();
+      updateTopBarUI();
+    }
+
+    function renderLobbyStories() {
+      const container = document.getElementById('stories-container');
+      container.innerHTML = '';
+
+      Object.values(STORIES).forEach(story => {
+        const prog = state.storyProgress[story.id] || { node: 'start', completed: false };
+        const statusLabel = prog.completed ? 'Пройдено ✨' : (prog.node !== 'start' ? 'В процессе' : 'Новая серия');
+
+        const card = document.createElement('div');
+        card.className = 'story-card';
+        card.onclick = () => startOrResumeStory(story.id);
+        card.innerHTML = `
+          <div class="story-card-art">
+            ${renderBackgroundSVG(story.bg)}
+            <div class="story-genre-tags">
+              ${story.genres.map(g => `<span class="genre-badge">${g}</span>`).join('')}
+            </div>
+            <div class="story-progress-badge">${statusLabel}</div>
+          </div>
+          <div class="story-card-body">
+            <h3 class="story-title">${story.title}</h3>
+            <p class="story-desc">${story.desc}</p>
+            <div class="story-card-footer">
+              <div class="li-avatars">❤️ Ветки: ${story.favorites.join(', ')}</div>
+              <button class="play-btn">
+                <span>▶ Играть</span>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    /* =========================================================================
+       9. WARDROBE LOGIC
+       ========================================================================= */
+    function setWardrobeCategory(cat) {
+      haptic('light');
+      playChime('tap');
+      currentWardrobeCat = cat;
+      ['outfit', 'hair', 'accessory'].forEach(c => {
+        document.getElementById(`wtab-${c}`).classList.toggle('active', c === cat);
+      });
+      renderWardrobe();
+    }
+
+    function renderWardrobe() {
+      document.getElementById('wardrobe-avatar-large').innerHTML = renderSteshaSVG('smile');
+      const returnBtn = document.getElementById('wardrobe-return-story-btn');
+      returnBtn.style.display = openedWardrobeFromStory ? 'inline-flex' : 'none';
+
+      const grid = document.getElementById('wardrobe-items-grid');
+      grid.innerHTML = '';
+
+      const items = WARDROBE_ITEMS[currentWardrobeCat] || [];
+      items.forEach(item => {
+        const isUnlocked = state.unlockedWardrobe.includes(item.id) || item.cost === 0;
+        const isEquipped = state.equipped[currentWardrobeCat] === item.id;
+        const effectiveCost = state.diamondFever ? 0 : item.cost;
+
+        const card = document.createElement('div');
+        card.className = `wardrobe-item-card ${isEquipped ? 'equipped' : ''}`;
+        card.onclick = () => selectWardrobeItem(currentWardrobeCat, item);
+
+        let actionLabel = 'Надето ✨';
+        if (!isEquipped) {
+          actionLabel = isUnlocked ? 'Надеть' : `Купить за ${effectiveCost} 🪙`;
+        }
+
+        card.innerHTML = `
+          <div>
+            <div class="wardrobe-item-title">${item.name}</div>
+            <div class="wardrobe-item-bonus">${item.bonusText}</div>
+          </div>
+          <div class="wardrobe-item-action">${actionLabel}</div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function selectWardrobeItem(category, item) {
+      const isUnlocked = state.unlockedWardrobe.includes(item.id) || item.cost === 0;
+      const effectiveCost = state.diamondFever ? 0 : item.cost;
+
+      if (!isUnlocked) {
+        if (state.coins < effectiveCost) {
+          haptic('warning');
+          showToast('🪙 Не хватает монеток! Загляни в бесплатную Сокровищницу Стеши!');
+          return;
+        }
+        state.coins -= effectiveCost;
+        state.unlockedWardrobe.push(item.id);
+        state.stats.prestige += 1;
+        playChime('premium');
+        haptic('success');
+        showToast(`👗 Открыт образ «${item.name}»! 👑 +1 Авторитет`);
+      } else {
+        playChime('tap');
+        haptic('light');
+      }
+
+      state.equipped[category] = item.id;
+      saveState();
+      renderWardrobe();
+    }
+
+    function openWardrobeFromReader() {
+      openedWardrobeFromStory = true;
+      switchTab('wardrobe');
+    }
+
+    function returnToStoryFromWardrobe() {
+      openedWardrobeFromStory = false;
+      switchTab('reader');
+      renderCurrentStoryNode();
+    }
+
+    /* =========================================================================
+       10. RELATIONSHIPS / FAVORITES SCREEN
+       ========================================================================= */
+    function renderRelations() {
+      const container = document.getElementById('relations-container');
+      container.innerHTML = '';
+
+      Object.values(FAVORITES_INFO).forEach(fav => {
+        const points = state.relations[fav.id] || fav.initialScore;
+        const pct = Math.min(100, Math.max(10, points));
+        let statusText = 'Знакомство';
+        if (points >= 60) statusText = 'Безумная любовь 💖';
+        else if (points >= 35) statusText = 'Романтическое притяжение 💕';
+        else if (points >= 22) statusText = 'Тёплая симпатия ✨';
+
+        const card = document.createElement('div');
+        card.className = 'relation-card';
+        card.innerHTML = `
+          <div class="relation-avatar">${renderCharacterSVG(fav.id)}</div>
+          <div class="relation-details">
+            <div class="relation-name-row">
+              <span class="relation-name">${fav.name}</span>
+              <span class="relation-status-pill">${statusText}</span>
+            </div>
+            <div class="relation-story-tag">${fav.story} • ${fav.role}</div>
+            <div style="font-size: 12px; color: #fff; margin-bottom: 8px; line-height: 1.38;">${fav.desc}</div>
+            <div class="heart-bar-track">
+              <div class="heart-bar-fill" style="width: ${pct}%;"></div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    /* =========================================================================
+       11. VISUAL NOVEL READER ENGINE
+       ========================================================================= */
+    function startOrResumeStory(storyId) {
+      const prog = state.storyProgress[storyId] || { node: 'start', completed: false };
+      if (prog.completed) {
+        state.storyProgress[storyId] = { node: 'start', completed: false };
+      } else if (prog.node === 'start') {
+        if (state.tea <= 0) {
+          state.tea = 5;
+          showToast('🫖 Чашки чая для Стеши автоматически пополнены бесплатно!');
+        } else {
+          state.tea -= 1;
+        }
+      }
+
+      activeStoryId = storyId;
+      activeNodeId = state.storyProgress[storyId].node || 'start';
+      saveState();
+      switchTab('reader');
+      renderCurrentStoryNode();
+    }
+
+    function renderCurrentStoryNode() {
+      const story = STORIES[activeStoryId];
+      if (!story) return;
+      const node = story.nodes[activeNodeId] || story.nodes.start;
+
+      document.getElementById('vn-bg').innerHTML = renderBackgroundSVG(node.bg || story.bg);
+      document.getElementById('vn-stat-r').textContent = state.stats.romance;
+      document.getElementById('vn-stat-p').textContent = state.stats.passion;
+      document.getElementById('vn-stat-a').textContent = state.stats.prestige;
+
+      const charsLayer = document.getElementById('vn-characters');
+      if (node.char === 'stesha') {
+        charsLayer.innerHTML = `<div class="char-sprite speaking">${renderSteshaSVG(node.emotion || 'smile')}</div>`;
+      } else {
+        charsLayer.innerHTML = `<div class="char-sprite speaking">${renderCharacterSVG(node.char)}</div>`;
+      }
+
+      const speakerEl = document.getElementById('vn-speaker');
+      speakerEl.textContent = node.speaker || 'Стеша';
+      speakerEl.className = `speaker-badge ${node.speaker === 'Рассказчик' ? 'narrator' : ''}`;
+
+      const resolvedText = typeof node.dynamicText === 'function' ? node.dynamicText() : node.text;
+      document.getElementById('vn-text').textContent = resolvedText;
+
+      const choicesEl = document.getElementById('vn-choices');
+      choicesEl.innerHTML = '';
+      const continueHint = document.getElementById('vn-continue-hint');
+
+      if (node.choices && node.choices.length > 0) {
+        continueHint.style.display = 'none';
+        node.choices.forEach(choice => {
+          const effectiveCost = state.diamondFever ? 0 : (choice.cost || 0);
+          const isPremium = (choice.cost || 0) > 0;
+          const btn = document.createElement('button');
+          btn.className = `choice-btn ${isPremium ? 'premium' : ''}`;
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            handleChoiceSelection(choice);
+          };
+
+          const costHtml = isPremium
+            ? `<span class="choice-cost-pill">${effectiveCost === 0 ? '💎 0 🪙' : `${effectiveCost} 🪙`}</span>`
+            : `<span class="choice-cost-pill free-choice">Бесплатно</span>`;
+
+          btn.innerHTML = `
+            <span>${choice.text}</span>
+            ${costHtml}
+          `;
+          choicesEl.appendChild(btn);
+        });
+      } else if (node.isEnding) {
+        continueHint.style.display = 'none';
+        const replayBtn = document.createElement('button');
+        replayBtn.className = 'choice-btn premium';
+        replayBtn.innerHTML = `<span>🔄 Переиграть историю (открыть другие ветки)</span><span class="choice-cost-pill">0 🪙</span>`;
+        replayBtn.onclick = () => {
+          state.storyProgress[activeStoryId] = { node: 'start', completed: false };
+          activeNodeId = 'start';
+          saveState();
+          renderCurrentStoryNode();
+        };
+
+        const lobbyBtn = document.createElement('button');
+        lobbyBtn.className = 'choice-btn';
+        lobbyBtn.innerHTML = `<span>📚 Вернуться к выбору историй</span><span class="choice-cost-pill free-choice">В меню</span>`;
+        lobbyBtn.onclick = () => {
+          state.storyProgress[activeStoryId].completed = true;
+          saveState();
+          exitReaderToLobby();
+        };
+
+        choicesEl.appendChild(replayBtn);
+        choicesEl.appendChild(lobbyBtn);
+      } else {
+        continueHint.style.display = 'block';
+      }
+    }
+
+    function handleDialogueTap() {
+      const story = STORIES[activeStoryId];
+      if (!story) return;
+      const node = story.nodes[activeNodeId];
+      if (!node || (node.choices && node.choices.length > 0) || node.isEnding) return;
+
+      if (node.next) {
+        haptic('light');
+        playChime('tap');
+        activeNodeId = node.next;
+        state.storyProgress[activeStoryId].node = activeNodeId;
+        saveState();
+        renderCurrentStoryNode();
+      }
+    }
+
+    function handleChoiceSelection(choice) {
+      const effectiveCost = state.diamondFever ? 0 : (choice.cost || 0);
+      if (state.coins < effectiveCost) {
+        haptic('warning');
+        showToast('🪙 Недостаточно монеток! Пополни бесплатно в Сокровищнице Стеши!');
+        return;
+      }
+
+      if (effectiveCost > 0) {
+        state.coins -= effectiveCost;
+        playChime('premium');
+        haptic('success');
+      } else {
+        playChime('tap');
+        haptic('light');
+      }
+
+      if (choice.effects) {
+        if (choice.effects.romance) state.stats.romance += choice.effects.romance;
+        if (choice.effects.passion) state.stats.passion += choice.effects.passion;
+        if (choice.effects.prestige) state.stats.prestige += choice.effects.prestige;
+        if (choice.effects.rel_lucius) state.relations.lucius += choice.effects.rel_lucius;
+        if (choice.effects.rel_raphael) state.relations.raphael += choice.effects.rel_raphael;
+        if (choice.effects.rel_adrian) state.relations.adrian += choice.effects.rel_adrian;
+        if (choice.effects.rel_kai) state.relations.kai += choice.effects.rel_kai;
+        if (choice.effects.rel_beloved) state.relations.beloved += choice.effects.rel_beloved;
+        if (choice.effects.rewardCoins) state.coins += choice.effects.rewardCoins;
+      }
+
+      if (choice.toast) {
+        showToast(choice.toast);
+      }
+
+      if (choice.action === 'open_wardrobe') {
+        activeNodeId = choice.next;
+        state.storyProgress[activeStoryId].node = activeNodeId;
+        saveState();
+        openWardrobeFromReader();
+        return;
+      }
+
+      if (choice.next) {
+        activeNodeId = choice.next;
+        state.storyProgress[activeStoryId].node = activeNodeId;
+        saveState();
+        renderCurrentStoryNode();
+      }
+    }
+
+    function exitReaderToLobby() {
+      switchTab('lobby');
+    }
+
+    /* =========================================================================
+       12. FREE TREASURY (NO-DONATE REWARDS & DIAMOND FEVER)
+       ========================================================================= */
+    function spinWheelBonus() {
+      const prizes = [50, 75, 100, 150, 200];
+      const won = prizes[Math.floor(Math.random() * prizes.length)];
+      state.coins += won;
+      saveState();
+      playChime('premium');
+      haptic('success');
+      showToast(`🎡 Колесо Фортуны: Стеша выиграла +${won} 🪙!`);
+    }
+
+    function claimSmileCoins() {
+      state.coins += 100;
+      saveState();
+      playChime('heart');
+      haptic('success');
+      showToast('😘 За прекрасную улыбку Стеши начислено +100 🪙!');
+    }
+
+    function refillTeaFree() {
+      state.tea = 5;
+      saveState();
+      playChime('tap');
+      haptic('success');
+      showToast('🫖 Чайник полон! У тебя 5/5 чашек ароматного чая');
+    }
+
+    function toggleDiamondFever() {
+      state.diamondFever = !state.diamondFever;
+      saveState();
+      playChime('premium');
+      haptic('success');
+      if (state.diamondFever) {
+        showToast('💎 Алмазная Лихорадка включена! Все выборы и наряды — 0 🪙!');
+      } else {
+        showToast('💎 Алмазная Лихорадка выключена');
+      }
+      if (currentTab === 'wardrobe') renderWardrobe();
+      if (currentTab === 'reader') renderCurrentStoryNode();
+    }
+
+    function openLoveNoteModal() {
+      playChime('heart');
+      haptic('light');
+      document.getElementById('modal-title').textContent = '💌 Для любимой Стеши';
+      document.getElementById('modal-body').innerHTML = `
+        Эта игра создана специально для тебя!<br><br>
+        Здесь ты — главная героиня каждой истории. Выбирай любые наряды, открывай секретные сюжетные линии, получай сколько угодно монеток без всякого доната и помни, что ты — самая чудесная, красивая и любимая девушка на свете! ✨
+      `;
+      document.getElementById('modal-backdrop').classList.add('active');
+    }
+
+    function closeModal() {
+      haptic('light');
+      document.getElementById('modal-backdrop').classList.remove('active');
+    }
+
+    /* =========================================================================
+       13. AMBIENT FLOATING SPARKLES CANVAS
+       ========================================================================= */
+    function initParticles() {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx = canvas.getContext('2d');
+      let width = canvas.width = canvas.offsetWidth || 400;
+      let height = canvas.height = canvas.offsetHeight || 700;
+
+      window.addEventListener('resize', () => {
+        width = canvas.width = canvas.offsetWidth || 400;
+        height = canvas.height = canvas.offsetHeight || 700;
+      });
+
+      const particles = Array.from({ length: 24 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        r: Math.random() * 2.2 + 0.8,
+        vy: -(Math.random() * 0.35 + 0.12),
+        vx: (Math.random() - 0.5) * 0.25,
+        alpha: Math.random() * 0.65 + 0.2
+      }));
+
+      function draw() {
+        ctx.clearRect(0, 0, width, height);
+        particles.forEach(p => {
+          p.x += p.vx;
+          p.y += p.vy;
+          if (p.y < -10) {
+            p.y = height + 10;
+            p.x = Math.random() * width;
+          }
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(245, 208, 118, ${p.alpha})`;
+          ctx.fill();
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+    }
+
+    /* =========================================================================
+       14. INITIALIZE APP ON LOAD
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      updateTopBarUI();
+      renderLobbyStories();
+      initParticles();
+    });
+  </script>
+</body>
+</html>
